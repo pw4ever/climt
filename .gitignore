@@ -1,4 +1,10 @@
 # Created by .ignore support plugin (hsz.mobi)
+### Custom ignores
+
+# Makefile non-source artifacts
+/coursier
+/climt
+
 ### SBT template
 
 .idea/
