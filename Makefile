@@ -9,11 +9,13 @@ THIS_MAKEFILE_PATH:=$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 THIS_DIR:=$(shell cd $(dir $(THIS_MAKEFILE_PATH));pwd)
 THIS_MAKEFILE:=$(notdir $(THIS_MAKEFILE_PATH))
 
-all: climt
+export PATH:=$(THIS_DIR):$(PATH)
 
-climt: coursier $(THIS_DIR)/build.sbt $(shell find "$(THIS_DIR)/src" -type f \( -name '*.scala' -o -name '*.java' \))
+all: $(ARTIFACT)
+
+$(ARTIFACT): coursier $(THIS_DIR)/build.sbt $(shell find "$(THIS_DIR)/src" -type f \( -name '*.scala' -o -name '*.java' \))
 	sbt publishLocal
-	./coursier bootstrap -o climt -f --standalone -M climt.Main "$(GROUP)::$(ARTIFACT):$(VERSION)"
+	coursier bootstrap -o $@ -f --standalone -M $@.Main "$(GROUP)::$(ARTIFACT):$(VERSION)"
 
 coursier:
 	src="https://git.io/coursier-cli"; \
@@ -21,7 +23,7 @@ coursier:
         { 2>/dev/null hash wget && wget -qO- "$$src" > "$@"; }
 	chmod +x "$@"
 
-demo: climt
-	./climt -h
-	./climt gp -h
-	./climt gp -n
+demo: $(ARTIFACT)
+	$< -h
+	$< gp -h
+	$< gp -n
