@@ -25,5 +25,8 @@ coursier:
 
 demo: $(ARTIFACT)
 	$< -h
-	$< gp -h
-	$< gp -n
+	$< p -h
+	$< p g
+	$< p g -n -r 5
+	$< p g -n 8 16 24 32
+	$< p m CAFEbabe deadBEEF '($$_$$lol)'
