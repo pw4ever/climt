@@ -7,8 +7,10 @@ object Globals {
   val maintainerEmail = "4pengw@gmail.com"
 
   object Defaults {
-    object GenStrongPassword {
-      val length = 16
+    object Password {
+      object GenStrongPassword {
+        val length = 16
+      }
     }
   }
 }

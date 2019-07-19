@@ -1,10 +1,13 @@
 package climt
 
-import scala.language.reflectiveCalls
+import climt.tool.password.Common
 
+import scala.language.reflectiveCalls
 import org.rogach.scallop._
 
-class ParseOpts private[climt](args: Seq[String]) extends ScallopConf(args) {
+class ParseOpts(args: Seq[String]) extends ScallopConf(args) {
+  appendDefaultToDescription = true
+
   version(
     s"""|${Globals.appname} ${Globals.appver} ${Globals.maintainerName} <${Globals.maintainerEmail}>""".stripMargin
   )
@@ -15,55 +18,98 @@ class ParseOpts private[climt](args: Seq[String]) extends ScallopConf(args) {
        |""".stripMargin
   )
 
-  val verbosity = tally(name = "verbose", short = 'v', descr = "Increase verbosity.")
+  val verbosity = tally(
+    name = "verbose", short = 'v', descr = "Increase verbosity.",
+  )
 
-  val genStrongPassword = new Subcommand("gp", "genpass", "genStrongPassword") {
-    val length = opt[Int](name = "length", short = 'l', descr = s"Password length (default: ${
-      Globals.Defaults.GenStrongPassword.length
-    }).",
-      default = Some(Globals.Defaults.GenStrongPassword.length))
-    val mnemonics = toggle(name = "mnemonics", short = 'n',
-      descrYes = "Show mnemonics.", descrNo = "Do not show mnemonics.")
+  val password = new Subcommand(
+    "p", "pass", "password",
+  ) {
+    appendDefaultToDescription = true
+
+    val genStrongPassword = new Subcommand(
+      "g", "gp", "genpass", "generateStrongPassword",
+    ) {
+      appendDefaultToDescription = true
+
+      val length = opt[Int](name = "length", short = 'l', descr = s"Password length.",
+        default = Some(Globals.Defaults.Password.GenStrongPassword.length),
+      )
+      val mnemonics = toggle(name = "mnemonics", short = 'n',
+        descrYes = "Show mnemonics.", descrNo = "Do not show mnemonics.",
+        default = Some(false),
+      )
+    }
+    addSubcommand(genStrongPassword)
+
+    val mapPasswordToMnemonics = new Subcommand(
+      "m", "mp", "mappass", "mapPasswordToMnemonics",
+    ) {
+      appendDefaultToDescription = true
+
+      val passwords = trailArg[List[String]](
+        required = false,
+        descr = "Passwords to be mapped to mnemonics.",
+        default = Some(List()),
+      )
+    }
+    addSubcommand(mapPasswordToMnemonics)
   }
-  addSubcommand(genStrongPassword)
-
-  val trailArgs = trailArg[List[String]](required = false, descr = "Additional arguments.")
+  addSubcommand(password)
 
   verify()
-
 }
 
-sealed class ParseOptsResult(
-                              val parsedOpts: ScallopConf
-                            )
-
-final case class GenStrongPasswordParseOptsResult(
-                                                   length: Int,
-                                                   mnemonics: Boolean,
-
-                                                   verbosity: Int,
-                                                   override val parsedOpts: ScallopConf
-                                                 ) extends ParseOptsResult(parsedOpts)
+class ParseOptsResult(
+                       val verbosity: Int,
+                       val parsedOpts: ParseOpts,
+                     )
 
 object ParseOpts {
 
   def apply(args: Seq[String]): ParseOptsResult = {
     val parsedOpts = new ParseOpts(args)
+    val verbosity = parsedOpts.verbosity().max(0)
 
-    parsedOpts.subcommand match {
-      case Some(parsedOpts.genStrongPassword) =>
-        GenStrongPasswordParseOptsResult(
-          length = parsedOpts.genStrongPassword.length.getOrElse(Globals.Defaults.GenStrongPassword.length).max(1),
-          mnemonics = parsedOpts.genStrongPassword.mnemonics.getOrElse(false),
-          verbosity = parsedOpts.verbosity.getOrElse(0).max(0),
+    import climt.tool._
+
+    parsedOpts.subcommands match {
+      case List(
+      parsedOpts.password,
+      parsedOpts.password.mapPasswordToMnemonics,
+      ) =>
+        password.MapPasswordToMnemonics.ParseOptsResult(
+          passwords = parsedOpts.password.mapPasswordToMnemonics.passwords(),
+          verbosity = verbosity,
+          parsedOpts = parsedOpts,
+        )
+
+      case List(
+      parsedOpts.password,
+      parsedOpts.password.genStrongPassword,
+      ) =>
+        password.GenerateStrongPassword.ParseOptsResult(
+          length = parsedOpts.password.genStrongPassword.length().max(1),
+          mnemonics = parsedOpts.password.genStrongPassword.mnemonics(),
+          verbosity = verbosity,
+          parsedOpts = parsedOpts,
+        )
+
+      case List(
+      parsedOpts.password,
+      ) =>
+        new password.Common.ParseOptsResult(
+          verbosity = verbosity,
           parsedOpts = parsedOpts,
         )
 
       case _ =>
         new ParseOptsResult(
+          verbosity = verbosity,
           parsedOpts = parsedOpts,
         )
     }
+
   }
 
 }
