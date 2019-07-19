@@ -2,12 +2,11 @@
 ### Custom ignores
 
 # Makefile non-source artifacts
-/coursier
+/bin
 /climt
+/.idea
 
 ### SBT template
-
-.idea/
 
 # Simple Build Tool
 # http://www.scala-sbt.org/release/docs/Getting-Started/Directories.html#configuring-version-control
