@@ -39,6 +39,13 @@ class ParseOpts(args: Seq[String]) extends ScallopConf(args) {
         descrYes = "Show mnemonics.", descrNo = "Do not show mnemonics.",
         default = Some(false),
       )
+      val repeat = opt[Int](name = "repeat", short = 'r', descr = "How many passwords to generate.",
+        default = Some(1),
+      )
+      val lengths = trailArg[List[Int]](
+        required = false,
+        descr = "Lengths of passwords to generate.",
+      )
     }
     addSubcommand(genStrongPassword)
 
@@ -50,7 +57,6 @@ class ParseOpts(args: Seq[String]) extends ScallopConf(args) {
       val passwords = trailArg[List[String]](
         required = false,
         descr = "Passwords to be mapped to mnemonics.",
-        default = Some(List()),
       )
     }
     addSubcommand(mapPasswordToMnemonics)
@@ -79,7 +85,7 @@ object ParseOpts {
       parsedOpts.password.mapPasswordToMnemonics,
       ) =>
         password.MapPasswordToMnemonics.ParseOptsResult(
-          passwords = parsedOpts.password.mapPasswordToMnemonics.passwords(),
+          passwords = parsedOpts.password.mapPasswordToMnemonics.passwords.getOrElse(List()),
           verbosity = verbosity,
           parsedOpts = parsedOpts,
         )
@@ -91,6 +97,8 @@ object ParseOpts {
         password.GenerateStrongPassword.ParseOptsResult(
           length = parsedOpts.password.genStrongPassword.length().max(1),
           mnemonics = parsedOpts.password.genStrongPassword.mnemonics(),
+          repeat = parsedOpts.password.genStrongPassword.repeat().max(1),
+          lengths = parsedOpts.password.genStrongPassword.lengths.getOrElse(List()),
           verbosity = verbosity,
           parsedOpts = parsedOpts,
         )

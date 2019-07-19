@@ -7,6 +7,8 @@ object GenerateStrongPassword {
   final case class ParseOptsResult(
                                     length: Int,
                                     mnemonics: Boolean,
+                                    repeat: Int,
+                                    lengths: List[Int],
 
                                     override val verbosity: Int,
                                     override val parsedOpts: climt.ParseOpts,
@@ -16,7 +18,11 @@ object GenerateStrongPassword {
       parsedOpts = parsedOpts,
     )
 
-  final case class Result(password: String, mnemonics: List[String])
+  final case class Result(password: String, mnemonics: List[String]) {
+    override def toString = password
+    def toString(showMnemonics: Boolean) =
+      if (showMnemonics) s"${password}\t${mnemonics.mkString(" ")}" else password
+  }
 
   def work(length: Int): Result = {
     val s = scala.util.Random.alphanumeric.filter(
@@ -29,12 +35,7 @@ object GenerateStrongPassword {
   }
 
   def apply(opts: ParseOptsResult) = {
-    val result = work(opts.length)
-    print(result.password)
-    if (opts.mnemonics) {
-      print("\t")
-      print(result.mnemonics.mkString(" "))
-    }
-    println()
+    val items = if (opts.lengths.isEmpty) List.fill(opts.repeat)(opts.length) else opts.lengths
+    for (item <- items) println(work(item).toString(opts.mnemonics))
   }
 }
