@@ -6,8 +6,8 @@ object Common {
     'h' -> "Hotel", 'i' -> "India", 'j' -> "Juliet", 'k' -> "Kilo", 'l' -> "Lima", 'm' -> "Mike", 'n' -> "November",
     'o' -> "Oscar", 'p' -> "Papa", 'q' -> "Quebec", 'r' -> "Romeo", 's' -> "Sierra", 't' -> "Tango",
     'u' -> "Uniform", 'v' -> "Victor", 'w' -> "Whiskey", 'x' -> "Xray", 'y' -> "Yankee", 'z' -> "Zulu",
-    '0' -> "Zero", '1' -> "One", '2' -> "Two", '3' -> "Three", '4' -> "Four",
-    '5' -> "Five", '6' -> "Six", '7' -> "Seven", '8' -> "Eight", '9' -> "Nine",
+    '0' -> "0", '1' -> "1", '2' -> "2", '3' -> "3", '4' -> "4",
+    '5' -> "5", '6' -> "6", '7' -> "7", '8' -> "8", '9' -> "9",
   ).flatMap((entry: (Char, String)) => {
     val k = entry._1
     val v = entry._2
